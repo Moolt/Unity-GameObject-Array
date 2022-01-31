@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -6,10 +7,38 @@ public class ArrayModifierEditor : Editor
 {
     private ArrayModifier _arrayModifier;
     private bool _colliderMissing;
+    private GameObject _gameObject;
+
+    private void OnDisable()
+    {
+        if (target != null)
+        {
+            return;
+        }
+
+        var arrayModifiers = _gameObject
+            .GetComponents<ArrayModifier>()
+            .Where(a => a != null)
+            .ToList();
+
+        var first = arrayModifiers.FirstOrDefault();
+
+        if (first == null)
+        {
+            return;
+        }
+
+        first.Apply();
+    }
 
     private void OnEnable()
     {
         _arrayModifier = target as ArrayModifier;
+
+        if (_arrayModifier != null)
+        {
+            _gameObject = _arrayModifier.gameObject;
+        }
     }
 
     public override void OnInspectorGUI()
@@ -30,8 +59,8 @@ public class ArrayModifierEditor : Editor
             return;
         }
 
-        _arrayModifier.Apply();
         _colliderMissing = IsColliderMissing();
+        _arrayModifier.Apply();
     }
 
     private bool IsColliderMissing()

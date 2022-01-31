@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,7 +12,7 @@ using UnityEditor;
 public class ArrayModifier : MonoBehaviour
 {
     [SerializeField] private Transform original;
-    [SerializeField] [Min(0)] private int amount;
+    [SerializeField] [Min(1)] private int amount = 2;
 
     [Space] [Header("Relative Offset")] [SerializeField]
     private bool useRelativeOffset = true;
@@ -23,34 +26,19 @@ public class ArrayModifier : MonoBehaviour
 
     public void Apply()
     {
+        if (this.TryGetSubsequentInstanceOf(out var subsequent))
+        {
+            subsequent.Apply();
+            return;
+        }
+
+        if (!TryGetPositions(out var positions))
+        {
+            return;
+        }
+
         ClearChildren();
-
-        if (!TryInstantiateFirstInstance(out var instance))
-        {
-            return;
-        }
-
-        if (!TryGetPositions(instance, out var positions))
-        {
-            return;
-        }
-
-        foreach (var position in positions)
-        {
-            InstantiateAt(position);
-        }
-    }
-
-    private bool TryInstantiateFirstInstance(out Transform instance)
-    {
-        if (original == null)
-        {
-            instance = null;
-            return false;
-        }
-
-        instance = InstantiateFirst();
-        return true;
+        InstantiateAt(positions);
     }
 
     private void ClearChildren()
@@ -62,33 +50,56 @@ public class ArrayModifier : MonoBehaviour
         }
     }
 
-    private bool TryGetPositions(Transform instance, out IList<Vector3> positions)
+    private IEnumerable<Vector3> GetPositions()
+    {
+        TryGetPositions(out var positions);
+        return positions;
+    }
+
+    private bool TryGetPositions(out IEnumerable<Vector3> positions)
     {
         positions = new List<Vector3>();
+        var generatedPositions = new List<Vector3>();
+        var basePositions = new List<Vector3>();
 
-        if (!TryGetBounds(instance, out var bounds))
+        if (!TryGetBounds(out var bounds))
         {
             return false;
         }
 
-        for (var i = 1; i < Math.Max(amount + 1, 0); i++)
+        if (this.TryGetPrecedingInstanceOf(out var previousArray))
         {
-            var center = AbsolutePositionFor(i, bounds);
-            positions.Add(center);
+            basePositions.AddRange(previousArray.GetPositions());
         }
 
+        if (!basePositions.Any())
+        {
+            basePositions.Add(transform.position);
+        }
+
+        foreach (var position in basePositions)
+        {
+            for (var i = 0; i < Math.Max(amount, 0); i++)
+            {
+                var center = AbsolutePositionFor(i, bounds, position);
+                generatedPositions.Add(center);
+            }
+        }
+
+        positions = generatedPositions.Distinct();
         return true;
     }
 
-    private bool TryGetBounds(Transform instance, out Bounds bounds)
+    private bool TryGetBounds(out Bounds bounds)
     {
-        if (instance == null)
+        if (Original == null)
         {
             bounds = new Bounds();
             return false;
         }
 
-        var objectCollider = instance.GetComponent<Collider>();
+        using var instance = new VolatileInstance(Original);
+        var objectCollider = instance.Value.GetComponent<Collider>();
 
         if (objectCollider == null)
         {
@@ -97,12 +108,13 @@ public class ArrayModifier : MonoBehaviour
         }
 
         bounds = objectCollider.bounds;
+
         return true;
     }
 
-    private Vector3 AbsolutePositionFor(int index, Bounds bounds)
+    private Vector3 AbsolutePositionFor(int index, Bounds bounds, Vector3 pivot)
     {
-        return transform.position + RelativePositionFor(index, bounds);
+        return pivot + RelativePositionFor(index, bounds);
     }
 
     private Vector3 RelativePositionFor(int index, Bounds bounds)
@@ -115,34 +127,46 @@ public class ArrayModifier : MonoBehaviour
         return offset;
     }
 
-    private Transform InstantiateFirst()
+    private void InstantiateAt(IEnumerable<Vector3> positions)
     {
-        return InstantiateAt(transform.position);
+        foreach (var position in positions)
+        {
+            InstantiateAt(position);
+        }
     }
 
-    private Transform InstantiateAt(Vector3 position)
+    private void InstantiateAt(Vector3 position)
     {
         Transform instance;
 #if UNITY_EDITOR
-        instance = PrefabUtility.InstantiatePrefab(original, transform) as Transform;
+        instance = PrefabUtility.InstantiatePrefab(Original, transform) as Transform;
 
         if (instance == null)
         {
-            return null;
+            return;
         }
 
         instance.transform.position = position;
 #else
-        instance = Instantiate(original, position, Quaternion.identity);
+        instance = Instantiate(Original, position, Quaternion.identity);
 #endif
 
         instance.SetParent(transform);
-        return instance;
     }
-    
+
     public Transform Original
     {
-        get => original;
+        get
+        {
+            if (original != null)
+            {
+                return original;
+            }
+
+            var arrayModifier = this.FirstInstanceOf();
+            original = arrayModifier == this ? null : arrayModifier.Original;
+            return original;
+        }
         set => SetValue(ref original, value, (o, n) => o == n);
     }
 

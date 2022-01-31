@@ -24,6 +24,11 @@ public static class ComponentExtensions
         return !components.Any() ? null : components[0];
     }
 
+    public static bool IsFirstInstanceOf<T>(this T component) where T : Component
+    {
+        return component.FirstInstanceOf() == component;
+    }
+
     private static T TryGetNeighboringInstanceOf<T>(this T component, int offset) where T : Component
     {
         var components = component.GetComponents<T>().ToList();

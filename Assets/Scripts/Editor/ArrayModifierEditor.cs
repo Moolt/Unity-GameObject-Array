@@ -51,16 +51,48 @@ public class ArrayModifierEditor : Editor
             EditorGUILayout.Space();
         }
 
-        EditorGUI.BeginChangeCheck();
-        DrawDefaultInspector();
+        var originalChanged = DrawOriginalProperty();
+        var otherHaveChanged = DrawOtherProperties();
+        var hasChanges = originalChanged || otherHaveChanged;
 
-        if (!EditorGUI.EndChangeCheck())
+        if (!hasChanges)
         {
             return;
         }
 
         _colliderMissing = IsColliderMissing();
         _arrayModifier.Apply();
+    }
+
+    private bool DrawOriginalProperty()
+    {
+        if (!_arrayModifier.IsFirstInstanceOf())
+        {
+            return false;
+        }
+
+        EditorGUI.BeginChangeCheck();
+
+        var serOriginal = serializedObject.FindProperty("original");
+        EditorGUILayout.PropertyField(serOriginal);
+
+        if (!EditorGUI.EndChangeCheck())
+        {
+            return false;
+        }
+
+        _arrayModifier.Clear();
+        return true;
+    }
+
+    private bool DrawOtherProperties()
+    {
+        EditorGUI.BeginChangeCheck();
+
+        DrawPropertiesExcluding(serializedObject, "m_Script", "original");
+        serializedObject.ApplyModifiedProperties();
+
+        return EditorGUI.EndChangeCheck();
     }
 
     private bool IsColliderMissing()

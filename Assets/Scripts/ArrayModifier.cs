@@ -37,16 +37,53 @@ public class ArrayModifier : MonoBehaviour
             return;
         }
 
-        ClearChildren();
-        InstantiateAt(positions);
+        ResizeObjectPool(positions.Count);
+        ApplyPositions(positions);
     }
 
-    private void ClearChildren()
+    public void Clear()
     {
         for (var i = transform.childCount - 1; i >= 0; i--)
         {
-            var child = transform.GetChild(i);
-            DestroyImmediate(child.gameObject);
+            RemoveInstance();
+        }
+    }
+
+    private void ApplyPositions(IList<Vector3> positions)
+    {
+        if (positions.Count != transform.childCount)
+        {
+            return;
+        }
+
+        var i = 0;
+        foreach (Transform child in transform)
+        {
+            child.transform.position = positions[i];
+            i++;
+        }
+    }
+
+    private void ResizeObjectPool(int size)
+    {
+        var childCount = transform.childCount;
+        var difference = childCount - size;
+
+        if (difference == 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < Mathf.Abs(difference); i++)
+        {
+            if (difference > 0)
+            {
+                RemoveInstance();
+            }
+            else
+            {
+                AddInstance();
+            }
         }
     }
 
@@ -56,7 +93,7 @@ public class ArrayModifier : MonoBehaviour
         return positions;
     }
 
-    private bool TryGetPositions(out IEnumerable<Vector3> positions)
+    private bool TryGetPositions(out IList<Vector3> positions)
     {
         positions = new List<Vector3>();
         var generatedPositions = new List<Vector3>();
@@ -86,7 +123,7 @@ public class ArrayModifier : MonoBehaviour
             }
         }
 
-        positions = generatedPositions.Distinct();
+        positions = generatedPositions.Distinct().ToList();
         return true;
     }
 
@@ -127,15 +164,7 @@ public class ArrayModifier : MonoBehaviour
         return offset;
     }
 
-    private void InstantiateAt(IEnumerable<Vector3> positions)
-    {
-        foreach (var position in positions)
-        {
-            InstantiateAt(position);
-        }
-    }
-
-    private void InstantiateAt(Vector3 position)
+    private void AddInstance()
     {
         Transform instance;
 #if UNITY_EDITOR
@@ -145,26 +174,32 @@ public class ArrayModifier : MonoBehaviour
         {
             return;
         }
-
-        instance.transform.position = position;
 #else
-        instance = Instantiate(Original, position, Quaternion.identity);
+        instance = Instantiate(Original);
 #endif
 
         instance.SetParent(transform);
+    }
+
+    private void RemoveInstance()
+    {
+        var index = transform.childCount - 1;
+        var child = transform.GetChild(index);
+        DestroyImmediate(child.gameObject);
     }
 
     public Transform Original
     {
         get
         {
-            if (original != null)
+            var arrayModifier = this.FirstInstanceOf();
+
+            if (arrayModifier == this || arrayModifier.Original == null)
             {
                 return original;
             }
 
-            var arrayModifier = this.FirstInstanceOf();
-            original = arrayModifier == this ? null : arrayModifier.Original;
+            original = arrayModifier.Original;
             return original;
         }
         set => SetValue(ref original, value, (o, n) => o == n);

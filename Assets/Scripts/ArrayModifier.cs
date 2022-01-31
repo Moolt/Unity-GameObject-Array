@@ -41,13 +41,7 @@ public class ArrayModifier : MonoBehaviour
         ApplyPositions(positions);
     }
 
-    public void Clear()
-    {
-        for (var i = transform.childCount - 1; i >= 0; i--)
-        {
-            RemoveInstance();
-        }
-    }
+    public void Clear() => transform.ClearChildren();
 
     private void ApplyPositions(IList<Vector3> positions)
     {

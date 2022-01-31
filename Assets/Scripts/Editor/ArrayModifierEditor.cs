@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -7,21 +8,19 @@ public class ArrayModifierEditor : Editor
 {
     private ArrayModifier _arrayModifier;
     private bool _colliderMissing;
-    private GameObject _gameObject;
+    private Transform _transform;
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        if (target != null)
+        var arrayModifiers = _transform.GetComponents<ArrayModifier>();
+
+        if (arrayModifiers.Length == 0)
         {
+            _transform.ClearChildren();
             return;
         }
 
-        var arrayModifiers = _gameObject
-            .GetComponents<ArrayModifier>()
-            .Where(a => a != null)
-            .ToList();
-
-        var first = arrayModifiers.FirstOrDefault();
+        var first = _transform.GetComponents<ArrayModifier>().FirstOrDefault();
 
         if (first == null)
         {
@@ -37,7 +36,7 @@ public class ArrayModifierEditor : Editor
 
         if (_arrayModifier != null)
         {
-            _gameObject = _arrayModifier.gameObject;
+            _transform = _arrayModifier.transform;
         }
     }
 

@@ -130,16 +130,31 @@ public class ArrayModifier : MonoBehaviour
         }
 
         using var instance = new VolatileInstance(Original);
-        var objectCollider = instance.Value.GetComponent<Collider>();
 
-        if (objectCollider == null)
+        if (TryGetBounds<Collider>(instance.Value, c => c.bounds, out bounds))
+        {
+            return true;
+        }
+        
+        if (TryGetBounds<Collider2D>(instance.Value, c => c.bounds, out bounds))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryGetBounds<T>(Transform instance, Func<T, Bounds> getter, out Bounds bounds) where T: Component
+    {
+        var colliderComponent = instance.GetComponent<T>();
+
+        if (colliderComponent == null)
         {
             bounds = new Bounds();
             return false;
         }
 
-        bounds = objectCollider.bounds;
-
+        bounds = getter(colliderComponent);
         return true;
     }
 

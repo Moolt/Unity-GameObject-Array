@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +11,12 @@ public class ArrayModifierEditor : Editor
     private void OnEnable()
     {
         _arrayModifier = target as ArrayModifier;
+        Undo.undoRedoPerformed += UndoRedoPerformed;
+    }
+
+    private void OnDisable()
+    {
+        Undo.undoRedoPerformed -= UndoRedoPerformed;
     }
 
     public override void OnInspectorGUI()
@@ -63,10 +70,21 @@ public class ArrayModifierEditor : Editor
     {
         EditorGUI.BeginChangeCheck();
 
+        Undo.RecordObject(target, nameof(target));
         DrawPropertiesExcluding(serializedObject, "m_Script", "original");
         serializedObject.ApplyModifiedProperties();
 
         return EditorGUI.EndChangeCheck();
+    }
+
+    private void UndoRedoPerformed()
+    {
+        if (_arrayModifier == null)
+        {
+            return;
+        }
+
+        _arrayModifier.Execute();
     }
 
     private void DrawApplyButton()

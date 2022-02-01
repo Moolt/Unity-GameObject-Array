@@ -1,17 +1,24 @@
+using System;
 using System.Linq;
 using UnityEngine;
 
 public static class ComponentExtensions
 {
-    public static bool TryGetPrecedingInstanceOf<T>(this T component, out T neighboringInstance) where T : Behaviour
+    public static bool TryGetPrecedingInstanceOf<T>(
+        this T component,
+        out T neighboringInstance,
+        Predicate<T> predicate = null) where T : Behaviour
     {
-        neighboringInstance = component.TryGetNeighboringInstanceOf(-1);
+        neighboringInstance = component.TryGetNeighboringInstanceOf(-1, predicate);
         return neighboringInstance != null;
     }
 
-    public static bool TryGetSubsequentInstanceOf<T>(this T component, out T neighboringInstance) where T : Behaviour
+    public static bool TryGetSubsequentInstanceOf<T>(
+        this T component,
+        out T neighboringInstance,
+        Predicate<T> predicate = null) where T : Behaviour
     {
-        neighboringInstance = component.TryGetNeighboringInstanceOf(1);
+        neighboringInstance = component.TryGetNeighboringInstanceOf(1, predicate);
         return neighboringInstance != null;
     }
 
@@ -29,9 +36,16 @@ public static class ComponentExtensions
         return component.FirstInstanceOf() == component;
     }
 
-    private static T TryGetNeighboringInstanceOf<T>(this T component, int offset) where T : Behaviour
+    private static T TryGetNeighboringInstanceOf<T>(
+        this T component,
+        int offset,
+        Predicate<T> predicate = null)
+        where T : Behaviour
     {
-        var components = component.GetComponents<T>().Where(c => c.enabled).ToList();
+        var components = component
+            .GetComponents<T>()
+            .Where(c => predicate?.Invoke(c) ?? true)
+            .ToList();
         var selfIndex = components.IndexOf(component);
         var index = Mathf.Clamp(selfIndex + offset, 0, components.Count - 1);
 
@@ -40,6 +54,6 @@ public static class ComponentExtensions
             return null;
         }
 
-        return components[selfIndex + offset];
+        return components.ElementAtOrDefault(selfIndex + offset);
     }
 }

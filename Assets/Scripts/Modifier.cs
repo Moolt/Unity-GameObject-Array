@@ -1,35 +1,26 @@
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using UnityEngine;
 using Object = UnityEngine.Object;
-using Vector3 = UnityEngine.Vector3;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 [ExecuteInEditMode]
-public class ArrayModifier : MonoBehaviour
+public abstract class ArrayModifier : MonoBehaviour
 {
     [SerializeField] private Transform original;
     [SerializeField] [Min(1)] private int amount = 2;
 
-    [Space] [Header("Relative Offset")] [SerializeField]
-    private bool useRelativeOffset = true;
-
-    [SerializeField] private Vector3 relativeOffset = Vector3.right;
-
-    [Space] [Header("Constant Offset")] [SerializeField]
-    private bool useConstantOffset;
-
-    [SerializeField] private Vector3 constantOffset = Vector3.zero;
-
-    private bool isCurrentlyApplying;
+    private bool _isCurrentlyApplying;
+    private bool _isCurrentlyBeingDestroyed;
 
     private void OnEnable()
     {
+        _isCurrentlyBeingDestroyed = false;
+
         if (transform.IsFirstInstanceOf())
         {
             Execute();
@@ -38,12 +29,12 @@ public class ArrayModifier : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (isCurrentlyApplying)
+        if (_isCurrentlyApplying)
         {
             return;
         }
 
-        enabled = false;
+        _isCurrentlyBeingDestroyed = true;
 
         var arrayModifiers = GetComponents<ArrayModifier>();
 
@@ -84,19 +75,37 @@ public class ArrayModifier : MonoBehaviour
 
     public void Clear() => transform.ClearChildren();
 
-    private void ApplyPositions(IList<Vector3> positions)
+    // ReSharper disable once UnusedMember.Global
+    public void Apply() => Apply(Destroy);
+
+    public void Apply(Action<Object> destroy)
     {
-        if (positions.Count != transform.childCount)
+        var modifiers = GetComponents<ArrayModifier>();
+
+        foreach (var modifier in modifiers)
+        {
+            modifier._isCurrentlyApplying = true;
+            destroy(modifier);
+        }
+    }
+
+    protected abstract Vector3 RelativePositionFor(int index, Bounds bounds);
+
+    // ReSharper disable once MemberCanBePrivate.Global
+    protected void SetValue<T>(ref T oldValue, T newValue, Func<T, T, bool> predicate)
+    {
+        if (predicate(oldValue, newValue))
         {
             return;
         }
 
-        var i = 0;
-        foreach (Transform child in transform)
-        {
-            child.transform.position = positions[i];
-            i++;
-        }
+        oldValue = newValue;
+        Execute();
+    }
+
+    protected void SetValue<T>(ref T oldValue, T newValue) where T : IEquatable<T>
+    {
+        SetValue(ref oldValue, newValue, (o, n) => o.Equals(n));
     }
 
     private void ResizeObjectPool(int size)
@@ -122,10 +131,19 @@ public class ArrayModifier : MonoBehaviour
         }
     }
 
-    private IEnumerable<Vector3> GetPositions()
+    private void ApplyPositions(IList<Vector3> positions)
     {
-        TryGetPositions(out var positions);
-        return positions;
+        if (positions.Count != transform.childCount)
+        {
+            return;
+        }
+
+        var i = 0;
+        foreach (Transform child in transform)
+        {
+            child.transform.position = positions[i];
+            i++;
+        }
     }
 
     private bool TryGetPositions(out IList<Vector3> positions)
@@ -139,9 +157,9 @@ public class ArrayModifier : MonoBehaviour
             return false;
         }
 
-        if (this.TryGetPrecedingInstanceOf(out var previousArray))
+        if (this.TryGetPrecedingInstanceOf(out var previousArray, modifier => !modifier._isCurrentlyBeingDestroyed))
         {
-            basePositions.AddRange(previousArray.GetPositions());
+            basePositions.AddRange(previousArray.Positions);
         }
 
         if (!basePositions.Any())
@@ -151,7 +169,7 @@ public class ArrayModifier : MonoBehaviour
 
         foreach (var position in basePositions)
         {
-            for (var i = 0; i < Math.Max(amount, 0); i++)
+            for (var i = 0; i < Math.Max(Amount, 0); i++)
             {
                 var center = AbsolutePositionFor(i, bounds, position);
                 generatedPositions.Add(center);
@@ -160,6 +178,11 @@ public class ArrayModifier : MonoBehaviour
 
         positions = generatedPositions.Distinct().ToList();
         return true;
+    }
+
+    private Vector3 AbsolutePositionFor(int index, Bounds bounds, Vector3 pivot)
+    {
+        return pivot + RelativePositionFor(index, bounds);
     }
 
     private bool TryGetBounds(out Bounds bounds)
@@ -185,7 +208,7 @@ public class ArrayModifier : MonoBehaviour
         return false;
     }
 
-    private bool TryGetBounds<T>(Transform instance, Func<T, Bounds> getter, out Bounds bounds) where T : Component
+    private bool TryGetBounds<T>(Component instance, Func<T, Bounds> getter, out Bounds bounds) where T : Component
     {
         var colliderComponent = instance.GetComponent<T>();
 
@@ -197,21 +220,6 @@ public class ArrayModifier : MonoBehaviour
 
         bounds = getter(colliderComponent);
         return true;
-    }
-
-    private Vector3 AbsolutePositionFor(int index, Bounds bounds, Vector3 pivot)
-    {
-        return pivot + RelativePositionFor(index, bounds);
-    }
-
-    private Vector3 RelativePositionFor(int index, Bounds bounds)
-    {
-        var size = bounds.size;
-        var relative = useRelativeOffset ? Vector3.Scale(size, relativeOffset) : Vector3.zero;
-        var constant = useConstantOffset ? constantOffset : Vector3.zero;
-        var offset = (relative + constant) * index;
-
-        return offset;
     }
 
     private void AddInstance()
@@ -238,6 +246,15 @@ public class ArrayModifier : MonoBehaviour
         DestroyImmediate(child.gameObject);
     }
 
+    private IEnumerable<Vector3> Positions
+    {
+        get
+        {
+            TryGetPositions(out var positions);
+            return positions;
+        }
+    }
+
     public Transform Original
     {
         get
@@ -259,58 +276,5 @@ public class ArrayModifier : MonoBehaviour
     {
         get => amount;
         set => SetValue(ref amount, value);
-    }
-
-    public bool UseRelativeOffset
-    {
-        get => useRelativeOffset;
-        set => SetValue(ref useRelativeOffset, value);
-    }
-
-    public Vector3 RelativeOffset
-    {
-        get => relativeOffset;
-        set => SetValue(ref relativeOffset, value);
-    }
-
-    public bool UseConstantOffset
-    {
-        get => useConstantOffset;
-        set => SetValue(ref useConstantOffset, value);
-    }
-
-    public Vector3 ConstantOffset
-    {
-        get => constantOffset;
-        set => SetValue(ref constantOffset, value);
-    }
-
-    private void SetValue<T>(ref T oldValue, T newValue, Func<T, T, bool> predicate)
-    {
-        if (predicate(oldValue, newValue))
-        {
-            return;
-        }
-
-        oldValue = newValue;
-        Execute();
-    }
-
-    private void SetValue<T>(ref T oldValue, T newValue) where T : IEquatable<T>
-    {
-        SetValue(ref oldValue, newValue, (o, n) => o.Equals(n));
-    }
-
-    public void Apply() => Apply(Destroy);
-    
-    public void Apply(Action<Object> destroy)
-    {
-        var modifiers = GetComponents<ArrayModifier>();
-
-        foreach (var modifier in modifiers)
-        {
-            modifier.isCurrentlyApplying = true;
-            destroy(modifier);
-        }
     }
 }

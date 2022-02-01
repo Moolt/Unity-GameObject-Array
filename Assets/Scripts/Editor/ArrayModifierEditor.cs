@@ -1,9 +1,7 @@
-using System;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ArrayModifier))]
+[CustomEditor(typeof(ArrayModifier), true)]
 public class ArrayModifierEditor : Editor
 {
     private ArrayModifier _arrayModifier;
@@ -29,10 +27,7 @@ public class ArrayModifierEditor : Editor
         var hasChanges = originalChanged || otherHaveChanged;
 
         EditorGUILayout.Space();
-        if (_arrayModifier.IsFirstInstanceOf() && GUILayout.Button("Apply"))
-        {
-            _arrayModifier.Apply(Undo.DestroyObjectImmediate);
-        }
+        DrawApplyButton();
 
         if (!hasChanges)
         {
@@ -72,6 +67,14 @@ public class ArrayModifierEditor : Editor
         serializedObject.ApplyModifiedProperties();
 
         return EditorGUI.EndChangeCheck();
+    }
+
+    private void DrawApplyButton()
+    {
+        if (_arrayModifier.IsFirstInstanceOf() && GUILayout.Button("Apply"))
+        {
+            _arrayModifier.Apply(Undo.DestroyObjectImmediate);
+        }
     }
 
     private bool IsColliderMissing()

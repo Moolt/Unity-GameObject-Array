@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using Vector3 = UnityEngine.Vector3;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+[ExecuteInEditMode]
 public class ArrayModifier : MonoBehaviour
 {
     [SerializeField] private Transform original;
@@ -24,11 +26,50 @@ public class ArrayModifier : MonoBehaviour
 
     [SerializeField] private Vector3 constantOffset = Vector3.zero;
 
-    public void Apply()
+    private bool isCurrentlyApplying;
+
+    private void OnEnable()
+    {
+        if (transform.IsFirstInstanceOf())
+        {
+            Execute();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (isCurrentlyApplying)
+        {
+            return;
+        }
+
+        enabled = false;
+
+        var arrayModifiers = GetComponents<ArrayModifier>();
+
+        if (arrayModifiers.Length == 1)
+        {
+            transform.ClearChildren();
+            return;
+        }
+
+        var first = transform
+            .GetComponents<ArrayModifier>()
+            .FirstOrDefault(c => c != this);
+
+        if (first == null)
+        {
+            return;
+        }
+
+        first.Execute();
+    }
+
+    public void Execute()
     {
         if (this.TryGetSubsequentInstanceOf(out var subsequent))
         {
-            subsequent.Apply();
+            subsequent.Execute();
             return;
         }
 
@@ -135,7 +176,7 @@ public class ArrayModifier : MonoBehaviour
         {
             return true;
         }
-        
+
         if (TryGetBounds<Collider2D>(instance.Value, c => c.bounds, out bounds))
         {
             return true;
@@ -144,7 +185,7 @@ public class ArrayModifier : MonoBehaviour
         return false;
     }
 
-    private bool TryGetBounds<T>(Transform instance, Func<T, Bounds> getter, out Bounds bounds) where T: Component
+    private bool TryGetBounds<T>(Transform instance, Func<T, Bounds> getter, out Bounds bounds) where T : Component
     {
         var colliderComponent = instance.GetComponent<T>();
 
@@ -252,11 +293,24 @@ public class ArrayModifier : MonoBehaviour
         }
 
         oldValue = newValue;
-        Apply();
+        Execute();
     }
 
     private void SetValue<T>(ref T oldValue, T newValue) where T : IEquatable<T>
     {
         SetValue(ref oldValue, newValue, (o, n) => o.Equals(n));
+    }
+
+    public void Apply() => Apply(Destroy);
+    
+    public void Apply(Action<Object> destroy)
+    {
+        var modifiers = GetComponents<ArrayModifier>();
+
+        foreach (var modifier in modifiers)
+        {
+            modifier.isCurrentlyApplying = true;
+            destroy(modifier);
+        }
     }
 }

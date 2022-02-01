@@ -3,13 +3,13 @@ using UnityEngine;
 
 public static class ComponentExtensions
 {
-    public static bool TryGetPrecedingInstanceOf<T>(this T component, out T neighboringInstance) where T : Component
+    public static bool TryGetPrecedingInstanceOf<T>(this T component, out T neighboringInstance) where T : Behaviour
     {
         neighboringInstance = component.TryGetNeighboringInstanceOf(-1);
         return neighboringInstance != null;
     }
 
-    public static bool TryGetSubsequentInstanceOf<T>(this T component, out T neighboringInstance) where T : Component
+    public static bool TryGetSubsequentInstanceOf<T>(this T component, out T neighboringInstance) where T : Behaviour
     {
         neighboringInstance = component.TryGetNeighboringInstanceOf(1);
         return neighboringInstance != null;
@@ -29,9 +29,9 @@ public static class ComponentExtensions
         return component.FirstInstanceOf() == component;
     }
 
-    private static T TryGetNeighboringInstanceOf<T>(this T component, int offset) where T : Component
+    private static T TryGetNeighboringInstanceOf<T>(this T component, int offset) where T : Behaviour
     {
-        var components = component.GetComponents<T>().ToList();
+        var components = component.GetComponents<T>().Where(c => c.enabled).ToList();
         var selfIndex = components.IndexOf(component);
         var index = Mathf.Clamp(selfIndex + offset, 0, components.Count - 1);
 

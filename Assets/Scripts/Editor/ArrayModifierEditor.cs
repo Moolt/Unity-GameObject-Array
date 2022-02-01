@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -7,36 +8,10 @@ public class ArrayModifierEditor : Editor
 {
     private ArrayModifier _arrayModifier;
     private bool _colliderMissing;
-    private Transform _transform;
-
-    private void OnDestroy()
-    {
-        var arrayModifiers = _transform.GetComponents<ArrayModifier>();
-
-        if (arrayModifiers.Length == 0)
-        {
-            _transform.ClearChildren();
-            return;
-        }
-
-        var first = _transform.GetComponents<ArrayModifier>().FirstOrDefault();
-
-        if (first == null)
-        {
-            return;
-        }
-
-        first.Apply();
-    }
 
     private void OnEnable()
     {
         _arrayModifier = target as ArrayModifier;
-
-        if (_arrayModifier != null)
-        {
-            _transform = _arrayModifier.transform;
-        }
     }
 
     public override void OnInspectorGUI()
@@ -53,13 +28,19 @@ public class ArrayModifierEditor : Editor
         var otherHaveChanged = DrawOtherProperties();
         var hasChanges = originalChanged || otherHaveChanged;
 
+        EditorGUILayout.Space();
+        if (_arrayModifier.IsFirstInstanceOf() && GUILayout.Button("Apply"))
+        {
+            _arrayModifier.Apply(Undo.DestroyObjectImmediate);
+        }
+
         if (!hasChanges)
         {
             return;
         }
 
         _colliderMissing = IsColliderMissing();
-        _arrayModifier.Apply();
+        _arrayModifier.Execute();
     }
 
     private bool DrawOriginalProperty()

@@ -63,6 +63,22 @@ The array modifiers are optimized by using object pooling.
 This means that value changes on the modifier will not cause all objects to be removed and reinstantiated. 
 Instead the positions of the already existing objects will be updated. If the user changes the amount of copies, the object pool will be filled or drained accordingly.
 
+## Extension
+
+To create custom array modifiers you can inherit from the `ArrayModifier` class.
+The only method that needs to be implemented is `RelativePositionFor` which returns a position for a copy at `index` in `local space`.
+Additionally the colliders `bounds` of the prefab are passed which can be used in calculations. See the code of `Linear Array` and `Circular Array` for better examples. They are really quite simple.
+
+```csharp
+public class MyArrayModifier : ArrayModifier
+{
+    protected override Vector3 RelativePositionFor(int index, Bounds bounds)
+    {
+        return return Vector3.up * index;
+    }
+}
+```
+
 ## Known issues
 
 * Unity may throw some errors when undoing deletion of an array modifier. This is just Unity doing Unity stuff, nothing serious.

@@ -141,7 +141,7 @@ public abstract class ArrayModifier : MonoBehaviour
         var i = 0;
         foreach (Transform child in transform)
         {
-            child.transform.position = positions[i];
+            child.transform.localPosition = positions[i];
             i++;
         }
     }
@@ -164,7 +164,7 @@ public abstract class ArrayModifier : MonoBehaviour
 
         if (!basePositions.Any())
         {
-            basePositions.Add(transform.position);
+            basePositions.Add(Vector3.zero);
         }
 
         foreach (var position in basePositions)
@@ -243,6 +243,7 @@ public abstract class ArrayModifier : MonoBehaviour
     {
         var index = transform.childCount - 1;
         var child = transform.GetChild(index);
+
         DestroyImmediate(child.gameObject);
     }
 

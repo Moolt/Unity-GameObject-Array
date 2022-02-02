@@ -65,6 +65,5 @@ Instead the positions of the already existing objects will be updated. If the us
 
 ## Known issues
 
-* Rotating the root object containing an array modifier is currently not supported
 * Unity may throw some errors when undoing deletion of an array modifier. This is just Unity doing Unity stuff, nothing serious.
 * Removing an array modifier may not update the copies correctly. Change any value on the component to force an update.

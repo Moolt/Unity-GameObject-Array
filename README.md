@@ -3,7 +3,7 @@
 The provided `Array Modifiers` allow for copying a prefab instance in a linear or circular manner to avoid manual placement of such objects.
 The amount of copies and the distance between them can be configured and viewed in realtime.
 
-![img](img/all_arrays.png)
+![img](img/animation.gif)
 
 ## Installation
 

@@ -11,17 +11,18 @@ using UnityEditor;
 [ExecuteInEditMode]
 public abstract class ArrayModifier : MonoBehaviour
 {
+    [SerializeField] private string identifier;
     [SerializeField] private Transform original;
     [SerializeField] [Min(1)] private int amount = 2;
 
     private bool _isCurrentlyApplying;
-    private bool _isCurrentlyBeingDestroyed;
 
     private void OnEnable()
     {
-        _isCurrentlyBeingDestroyed = false;
+        IsBeingDestroyed = false;
+        _isCurrentlyApplying = false;
 
-        if (transform.IsFirstInstanceOf())
+        if (this.IsFirstInstance())
         {
             Execute();
         }
@@ -29,12 +30,13 @@ public abstract class ArrayModifier : MonoBehaviour
 
     private void OnDestroy()
     {
+        Debug.Log("Destroyed " + identifier);
         if (_isCurrentlyApplying)
         {
             return;
         }
 
-        _isCurrentlyBeingDestroyed = true;
+        IsBeingDestroyed = true;
 
         var arrayModifiers = GetComponents<ArrayModifier>();
 
@@ -44,9 +46,7 @@ public abstract class ArrayModifier : MonoBehaviour
             return;
         }
 
-        var first = transform
-            .GetComponents<ArrayModifier>()
-            .FirstOrDefault(c => c != this);
+        var first = this.FirstInstance();
 
         if (first == null)
         {
@@ -58,7 +58,7 @@ public abstract class ArrayModifier : MonoBehaviour
 
     public void Execute()
     {
-        if (this.TryGetSubsequentInstanceOf(out var subsequent))
+        if (this.TryGetNextInstance(out var subsequent))
         {
             subsequent.Execute();
             return;
@@ -157,7 +157,7 @@ public abstract class ArrayModifier : MonoBehaviour
             return false;
         }
 
-        if (this.TryGetPrecedingInstanceOf(out var previousArray, modifier => !modifier._isCurrentlyBeingDestroyed))
+        if (this.TryGetPreviousInstance(out var previousArray))
         {
             basePositions.AddRange(previousArray.Positions);
         }
@@ -260,7 +260,7 @@ public abstract class ArrayModifier : MonoBehaviour
     {
         get
         {
-            var arrayModifier = this.FirstInstanceOf();
+            var arrayModifier = this.FirstInstance();
 
             if (arrayModifier == this || arrayModifier.Original == null)
             {
@@ -278,4 +278,6 @@ public abstract class ArrayModifier : MonoBehaviour
         get => amount;
         set => SetValue(ref amount, value);
     }
+
+    public bool IsBeingDestroyed { get; private set; }
 }

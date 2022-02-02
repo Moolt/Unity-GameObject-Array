@@ -21,7 +21,7 @@ public class ArrayModifierEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        if (_colliderMissing && _arrayModifier.IsFirstInstanceOf())
+        if (_colliderMissing && _arrayModifier.IsFirstInstance())
         {
             EditorGUILayout.HelpBox(
                 "Collider missing on Prefab. Please add a collider. If you don't want collision on the prefab, you can enable the trigger option on the collider.",
@@ -47,7 +47,7 @@ public class ArrayModifierEditor : Editor
 
     private bool DrawOriginalProperty()
     {
-        if (!_arrayModifier.IsFirstInstanceOf())
+        if (!_arrayModifier.IsFirstInstance())
         {
             return false;
         }
@@ -89,7 +89,7 @@ public class ArrayModifierEditor : Editor
 
     private void DrawApplyButton()
     {
-        if (_arrayModifier.IsFirstInstanceOf() && GUILayout.Button("Apply"))
+        if (_arrayModifier.IsFirstInstance() && GUILayout.Button("Apply"))
         {
             _arrayModifier.Apply(Undo.DestroyObjectImmediate);
         }

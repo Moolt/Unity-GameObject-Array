@@ -11,7 +11,6 @@ using UnityEditor;
 [ExecuteInEditMode]
 public abstract class ArrayModifier : MonoBehaviour
 {
-    [SerializeField] private string identifier;
     [SerializeField] private Transform original;
     [SerializeField] [Min(1)] private int amount = 2;
 
@@ -30,7 +29,6 @@ public abstract class ArrayModifier : MonoBehaviour
 
     private void OnDestroy()
     {
-        Debug.Log("Destroyed " + identifier);
         if (_isCurrentlyApplying)
         {
             return;

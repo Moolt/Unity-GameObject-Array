@@ -208,7 +208,7 @@ public abstract class ArrayModifier : MonoBehaviour
 
     private bool TryGetBounds<T>(Component instance, Func<T, Bounds> getter, out Bounds bounds) where T : Component
     {
-        var colliderComponent = instance.GetComponent<T>();
+        var colliderComponent = instance.GetComponentInChildren<T>();
 
         if (colliderComponent == null)
         {

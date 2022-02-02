@@ -1,4 +1,3 @@
-using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -104,8 +103,8 @@ public class ArrayModifierEditor : Editor
             return false;
         }
 
-        var collider = original.GetComponent<Collider>();
-        var collider2D = original.GetComponent<Collider2D>();
+        var collider = original.GetComponentInChildren<Collider>();
+        var collider2D = original.GetComponentInChildren<Collider2D>();
 
         return collider == null && collider2D == null;
     }

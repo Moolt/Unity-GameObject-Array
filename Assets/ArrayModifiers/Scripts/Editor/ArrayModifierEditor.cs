@@ -8,7 +8,6 @@ namespace ArrayModifiers.Scripts.Editor
     {
         private ArrayModifier _arrayModifier;
         private bool _colliderMissing;
-        private bool _bakeMeshFoldoutState;
 
         private void OnEnable()
         {
@@ -33,9 +32,6 @@ namespace ArrayModifiers.Scripts.Editor
 
             var originalChanged = DrawOriginalProperty();
             var amountChanged = DrawAmountProperty();
-
-            EditorGUILayout.Space();
-
             var bakeMeshesChanged = DrawBakeMeshesProperty();
             var otherHaveChanged = DrawOtherProperties();
             var hasChanges = originalChanged || amountChanged || otherHaveChanged || bakeMeshesChanged;
@@ -114,15 +110,13 @@ namespace ArrayModifiers.Scripts.Editor
                 return false;
             }
 
-            _bakeMeshFoldoutState = EditorGUILayout.Foldout(_bakeMeshFoldoutState, "Baking");
-
-            if (!_bakeMeshFoldoutState)
-            {
-                return false;
-            }
-
             EditorGUI.BeginChangeCheck();
 
+            if (_arrayModifier.BakeMeshes)
+            {
+                EditorGUILayout.Space();
+            }
+            
             var serBakeMeshes = serializedObject.FindProperty("bakeMeshes");
             EditorGUILayout.PropertyField(serBakeMeshes);
 

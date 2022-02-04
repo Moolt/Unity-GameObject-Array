@@ -4,10 +4,6 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
 namespace ArrayModifiers.Scripts
 {
     [ExecuteInEditMode]
@@ -87,6 +83,7 @@ namespace ArrayModifiers.Scripts
             ObjectPool.Size = positions.Count;
 
             ApplyPositions(positions);
+            HandlePostprocessing();
             HandleMeshBaking();
         }
 
@@ -135,7 +132,10 @@ namespace ArrayModifiers.Scripts
             var i = 0;
             foreach (Transform child in transform)
             {
-                child.transform.localPosition = positions[i];
+                var childTransform = child.transform;
+                child.rotation = Quaternion.identity;
+                child.localScale = Vector3.one;
+                childTransform.localPosition = positions[i];
                 i++;
             }
         }
@@ -214,6 +214,23 @@ namespace ArrayModifiers.Scripts
 
             bounds = getter(colliderComponent);
             return true;
+        }
+
+        private void HandlePostprocessing()
+        {
+            var postprocessors = GetComponents<PostProcessor>();
+
+            foreach (var postprocessor in postprocessors)
+            {
+                postprocessor.BeforeExecute();
+
+                foreach (Transform child in transform)
+                {
+                    postprocessor.Execute(child);
+                }
+
+                postprocessor.AfterExecute();
+            }
         }
 
         private IEnumerable<Vector3> Positions

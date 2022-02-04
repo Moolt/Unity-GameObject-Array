@@ -10,7 +10,6 @@ namespace ArrayModifiers.Scripts.Editor
         private bool _colliderMissing;
         private bool _bakeMeshFoldoutState;
 
-
         private void OnEnable()
         {
             _arrayModifier = target as ArrayModifier;

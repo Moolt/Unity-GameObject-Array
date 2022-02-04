@@ -1,22 +1,26 @@
 using UnityEngine;
 
-public class CircularArray : ArrayModifier
+namespace ArrayModifiers.Scripts
 {
-    [SerializeField] private float radius;
-    [SerializeField] private float offset;
-
-    protected override Vector3 RelativePositionFor(int index, Bounds bounds)
+    public class CircularArray : ArrayModifier
     {
-        var alpha = ((Mathf.Deg2Rad * 360) / Amount) * index;
+        [Header("Properties")]
+        [SerializeField] private float radius;
+        [SerializeField] private float offset;
 
-        return PolarToCartesian(alpha + offset);
-    }
+        protected override Vector3 RelativePositionFor(int index, Bounds bounds)
+        {
+            var alpha = ((Mathf.Deg2Rad * 360) / Amount) * index;
 
-    private Vector3 PolarToCartesian(float alpha)
-    {
-        var x = radius * Mathf.Cos(alpha);
-        var z = radius * Mathf.Sin(alpha);
+            return PolarToCartesian(alpha + offset);
+        }
 
-        return new Vector3(x, 0f, z);
+        private Vector3 PolarToCartesian(float alpha)
+        {
+            var x = radius * Mathf.Cos(alpha);
+            var z = radius * Mathf.Sin(alpha);
+
+            return new Vector3(x, 0f, z);
+        }
     }
 }

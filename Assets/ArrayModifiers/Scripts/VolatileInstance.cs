@@ -2,22 +2,25 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-public class VolatileInstance : IDisposable
+namespace ArrayModifiers.Scripts
 {
-    public VolatileInstance(Transform prefab)
+    public class VolatileInstance : IDisposable
     {
-        Value = Object.Instantiate(prefab);
-    }
-
-    public Transform Value { get; }
-
-    public void Dispose()
-    {
-        if (Value == null)
+        public VolatileInstance(Transform prefab)
         {
-            return;
+            Value = Object.Instantiate(prefab);
         }
 
-        Object.DestroyImmediate(Value.gameObject);
+        public Transform Value { get; }
+
+        public void Dispose()
+        {
+            if (Value == null)
+            {
+                return;
+            }
+
+            Object.DestroyImmediate(Value.gameObject);
+        }
     }
 }

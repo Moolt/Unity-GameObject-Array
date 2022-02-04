@@ -15,7 +15,6 @@ namespace ArrayModifiers.Scripts
     {
         [SerializeField] private Transform original;
         [SerializeField] [Min(1)] private int amount = 2;
-        [SerializeField] private bool bakeMeshes;
 
         private bool _isCurrentlyApplying;
         private bool _executionLocked;
@@ -217,20 +216,6 @@ namespace ArrayModifiers.Scripts
             return true;
         }
 
-        private void HandleMeshBaking()
-        {
-            if (!bakeMeshes)
-            {
-                return;
-            }
-
-            var bakedMeshes = MeshBakery.Bake(transform).ToList();
-
-            bakedMeshes.SetParent(null);
-            Clear();
-            bakedMeshes.SetParent(transform);
-        }
-
         private IEnumerable<Vector3> Positions
         {
             get
@@ -244,12 +229,6 @@ namespace ArrayModifiers.Scripts
         {
             get => original;
             set => SetValue(ref original, value, (o, n) => o == n);
-        }
-
-        public bool BakeMeshes
-        {
-            get => bakeMeshes;
-            set => SetValue(ref bakeMeshes, value);
         }
 
         public int Amount

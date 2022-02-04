@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace ArrayModifiers.Scripts
@@ -35,9 +36,10 @@ namespace ArrayModifiers.Scripts
                 var obj = new GameObject($"submesh_{index}");
                 var meshFilter = obj.AddComponent<MeshFilter>();
                 var meshRenderer = obj.AddComponent<MeshRenderer>();
+                var mesh = new Mesh();
 
-                meshFilter.sharedMesh = new Mesh();
-                meshFilter.sharedMesh.CombineMeshes(pair.Value.ToArray());
+                meshFilter.sharedMesh = mesh;
+                meshFilter.sharedMesh.CombineMeshes(pair.Value.ToArray(), true, true, false);
                 meshRenderer.sharedMaterial = pair.Key;
 
                 index++;

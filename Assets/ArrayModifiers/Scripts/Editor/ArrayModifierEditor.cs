@@ -1,156 +1,203 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ArrayModifiers.Scripts.ArrayModifier), true)]
-public class ArrayModifierEditor : Editor
+namespace ArrayModifiers.Scripts.Editor
 {
-    private ArrayModifiers.Scripts.ArrayModifier _arrayModifier;
-    private bool _colliderMissing;
-
-    private void OnEnable()
+    [CustomEditor(typeof(ArrayModifier), true)]
+    public class ArrayModifierEditor : UnityEditor.Editor
     {
-        _arrayModifier = target as ArrayModifiers.Scripts.ArrayModifier;
-        Undo.undoRedoPerformed += UndoRedoPerformed;
-    }
+        private ArrayModifier _arrayModifier;
+        private bool _colliderMissing;
+        private bool _bakeMeshFoldoutState;
 
-    private void OnDisable()
-    {
-        Undo.undoRedoPerformed -= UndoRedoPerformed;
-    }
 
-    public override void OnInspectorGUI()
-    {
-        if (_colliderMissing && _arrayModifier.IsFirstInstance())
+        private void OnEnable()
         {
-            EditorGUILayout.HelpBox(
-                "Collider missing on Prefab. Please add a collider. If you don't want collision on the prefab, you can enable the trigger option on the collider.",
-                MessageType.Warning);
-            EditorGUILayout.Space();
+            _arrayModifier = target as ArrayModifier;
+            Undo.undoRedoPerformed += UndoRedoPerformed;
         }
 
-        var originalChanged = DrawOriginalProperty();
-        var bakeMeshesChanged = DrawBakeMeshesProperty();
-        var otherHaveChanged = DrawOtherProperties();
-        var hasChanges = originalChanged || otherHaveChanged || bakeMeshesChanged;
-
-        EditorGUILayout.Space();
-        DrawApplyButton();
-
-        if (!hasChanges)
+        private void OnDisable()
         {
-            return;
+            Undo.undoRedoPerformed -= UndoRedoPerformed;
         }
 
-        SynchronizeGlobalSettings();
-        _colliderMissing = IsColliderMissing();
-        _arrayModifier.Execute();
-    }
-
-    private void SynchronizeGlobalSettings()
-    {
-        if (!_arrayModifier.IsFirstInstance())
+        public override void OnInspectorGUI()
         {
-            return;
-        }
-
-        var all = _arrayModifier.AllInstances();
-
-        foreach (var instance in all)
-        {
-            if (instance == _arrayModifier)
+            if (_colliderMissing && _arrayModifier.IsFirstInstance())
             {
-                continue;
+                EditorGUILayout.HelpBox(
+                    "Collider missing on Prefab. Please add a collider. If you don't want collision on the prefab, you can enable the trigger option on the collider.",
+                    MessageType.Warning);
+                EditorGUILayout.Space();
             }
 
-            instance.Original = _arrayModifier.Original;
-            instance.BakeMeshes = _arrayModifier.BakeMeshes;
-        }
-    }
+            var originalChanged = DrawOriginalProperty();
+            var amountChanged = DrawAmountProperty();
 
-    private bool DrawOriginalProperty()
-    {
-        if (!_arrayModifier.IsFirstInstance())
+            EditorGUILayout.Space();
+
+            var bakeMeshesChanged = DrawBakeMeshesProperty();
+            var otherHaveChanged = DrawOtherProperties();
+            var hasChanges = originalChanged || amountChanged || otherHaveChanged || bakeMeshesChanged;
+
+            EditorGUILayout.Space();
+            DrawApplyButton();
+
+            if (!hasChanges)
+            {
+                return;
+            }
+
+            SynchronizeGlobalSettings();
+            _colliderMissing = IsColliderMissing();
+            _arrayModifier.Execute();
+        }
+
+        private void SynchronizeGlobalSettings()
         {
-            return false;
+            if (!_arrayModifier.IsFirstInstance())
+            {
+                return;
+            }
+
+            var all = _arrayModifier.AllInstances();
+
+            foreach (var instance in all)
+            {
+                if (instance == _arrayModifier)
+                {
+                    continue;
+                }
+
+                instance.Original = _arrayModifier.Original;
+                instance.BakeMeshes = _arrayModifier.BakeMeshes;
+                instance.AddCollider = _arrayModifier.AddCollider;
+                instance.StaticFlags = _arrayModifier.StaticFlags;
+                instance.GenerateLightmapUVs = _arrayModifier.GenerateLightmapUVs;
+            }
         }
 
-        EditorGUI.BeginChangeCheck();
-
-        var serOriginal = serializedObject.FindProperty("original");
-        EditorGUILayout.PropertyField(serOriginal);
-
-        if (!EditorGUI.EndChangeCheck())
+        private bool DrawAmountProperty()
         {
-            return false;
+            EditorGUI.BeginChangeCheck();
+            var serAmount = serializedObject.FindProperty("amount");
+            EditorGUILayout.PropertyField(serAmount);
+
+            return EditorGUI.EndChangeCheck();
         }
 
-        _arrayModifier.Clear();
-        return true;
-    }
-
-
-    private bool DrawBakeMeshesProperty()
-    {
-        if (!_arrayModifier.IsFirstInstance())
+        private bool DrawOriginalProperty()
         {
-            return false;
+            if (!_arrayModifier.IsFirstInstance())
+            {
+                return false;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            var serOriginal = serializedObject.FindProperty("original");
+            EditorGUILayout.PropertyField(serOriginal);
+
+            if (!EditorGUI.EndChangeCheck())
+            {
+                return false;
+            }
+
+            _arrayModifier.Clear();
+            return true;
         }
-
-        EditorGUI.BeginChangeCheck();
-
-        var serOriginal = serializedObject.FindProperty("bakeMeshes");
-        EditorGUILayout.PropertyField(serOriginal);
-
-        if (!EditorGUI.EndChangeCheck())
+    
+        private bool DrawBakeMeshesProperty()
         {
-            return false;
+            if (!_arrayModifier.IsFirstInstance())
+            {
+                return false;
+            }
+
+            _bakeMeshFoldoutState = EditorGUILayout.Foldout(_bakeMeshFoldoutState, "Baking");
+
+            if (!_bakeMeshFoldoutState)
+            {
+                return false;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            var serBakeMeshes = serializedObject.FindProperty("bakeMeshes");
+            EditorGUILayout.PropertyField(serBakeMeshes);
+
+            if (serBakeMeshes.boolValue)
+            {
+                var serStaticFlags = serializedObject.FindProperty("staticFlags");
+                EditorGUILayout.PropertyField(serStaticFlags);
+
+                var serLightmapUVs = serializedObject.FindProperty("generateLightmapUVs");
+                EditorGUILayout.PropertyField(serLightmapUVs, new GUIContent("Generate Lightmap UVs"));
+
+                var serAddCollider = serializedObject.FindProperty("addCollider");
+                EditorGUILayout.PropertyField(serAddCollider);
+            }
+
+            if (!EditorGUI.EndChangeCheck())
+            {
+                return false;
+            }
+
+            _arrayModifier.Clear();
+            return true;
         }
 
-        _arrayModifier.Clear();
-        return true;
-    }
-
-    private bool DrawOtherProperties()
-    {
-        EditorGUI.BeginChangeCheck();
-
-        Undo.RecordObject(target, nameof(target));
-        DrawPropertiesExcluding(serializedObject, "m_Script", "original", "bakeMeshes");
-        serializedObject.ApplyModifiedProperties();
-
-        return EditorGUI.EndChangeCheck();
-    }
-
-    private void UndoRedoPerformed()
-    {
-        if (_arrayModifier == null)
+        private bool DrawOtherProperties()
         {
-            return;
+            EditorGUI.BeginChangeCheck();
+
+            Undo.RecordObject(target, nameof(target));
+            DrawPropertiesExcluding(
+                serializedObject,
+                "m_Script",
+                "original",
+                "bakeMeshes",
+                "amount",
+                "staticFlags",
+                "generateLightmapUVs",
+                "addCollider");
+            serializedObject.ApplyModifiedProperties();
+
+            return EditorGUI.EndChangeCheck();
         }
 
-        _arrayModifier.Execute();
-    }
-
-    private void DrawApplyButton()
-    {
-        if (_arrayModifier.IsFirstInstance() && GUILayout.Button("Apply"))
+        private void UndoRedoPerformed()
         {
-            _arrayModifier.Apply(Undo.DestroyObjectImmediate);
+            if (_arrayModifier == null)
+            {
+                return;
+            }
+
+            _arrayModifier.Execute();
         }
-    }
 
-    private bool IsColliderMissing()
-    {
-        var original = _arrayModifier.Original;
-
-        if (original == null)
+        private void DrawApplyButton()
         {
-            return false;
+            if (_arrayModifier.IsFirstInstance() && GUILayout.Button("Apply"))
+            {
+                _arrayModifier.Apply(Undo.DestroyObjectImmediate);
+            }
         }
 
-        var collider = original.GetComponentInChildren<Collider>();
-        var collider2D = original.GetComponentInChildren<Collider2D>();
+        private bool IsColliderMissing()
+        {
+            var original = _arrayModifier.Original;
 
-        return collider == null && collider2D == null;
+            if (original == null)
+            {
+                return false;
+            }
+
+            var collider = original.GetComponentInChildren<Collider>();
+            var collider2D = original.GetComponentInChildren<Collider2D>();
+
+            return collider == null && collider2D == null;
+        }
     }
 }

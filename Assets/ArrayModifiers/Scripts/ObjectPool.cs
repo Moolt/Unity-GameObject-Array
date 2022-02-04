@@ -9,7 +9,6 @@ namespace ArrayModifiers.Scripts
     public class ObjectPool
     {
         private readonly Func<Transform> _prefabGetter;
-        private readonly IList<Transform> _instances = new List<Transform>();
 
         private Transform Prefab => _prefabGetter();
         private Transform Parent { get; }
@@ -68,7 +67,6 @@ namespace ArrayModifiers.Scripts
 
         private void AddInstance()
         {
-            Debug.Log("add instance");
             Transform instance;
 #if UNITY_EDITOR
             instance = PrefabUtility.InstantiatePrefab(Prefab) as Transform;
@@ -82,7 +80,6 @@ namespace ArrayModifiers.Scripts
 #endif
 
             instance.SetParent(Parent);
-            _instances.Add(instance);
         }
 
         private void RemoveInstance()
@@ -90,7 +87,6 @@ namespace ArrayModifiers.Scripts
             var index = Parent.childCount - 1;
             var child = Parent.GetChild(index);
 
-            _instances.Remove(child);
             Object.DestroyImmediate(child.gameObject);
         }
     }

@@ -14,7 +14,7 @@ namespace ArrayModifiers.Scripts
         public IList<ArrayModifier> AllInstances()
         {
             return GetComponents<ArrayModifier>()
-                .Where(a => !a._isBeingDestroyed)
+                .Where(a => !a._executionLocked)
                 .ToList();
         }
 

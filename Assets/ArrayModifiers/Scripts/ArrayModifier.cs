@@ -18,7 +18,7 @@ namespace ArrayModifiers.Scripts
         [SerializeField] private bool bakeMeshes;
 
         private bool _isCurrentlyApplying;
-        private bool _isBeingDestroyed;
+        private bool _executionLocked;
 
         private ObjectPool _objectPool;
 
@@ -26,7 +26,7 @@ namespace ArrayModifiers.Scripts
 
         private void OnEnable()
         {
-            _isBeingDestroyed = false;
+            _executionLocked = false;
             _isCurrentlyApplying = false;
 
             if (IsFirstInstance() && !bakeMeshes)
@@ -35,15 +35,19 @@ namespace ArrayModifiers.Scripts
             }
         }
 
+        private void OnDisable()
+        {
+            _executionLocked = true;
+        }
+
         private void OnDestroy()
         {
-            Debug.Log("destroy");
             if (_isCurrentlyApplying)
             {
                 return;
             }
 
-            _isBeingDestroyed = true;
+            _executionLocked = true;
 
             var arrayModifiers = GetComponents<ArrayModifier>();
 

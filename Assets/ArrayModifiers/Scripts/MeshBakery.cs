@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ArrayModifiers.Scripts
 {
@@ -19,13 +20,13 @@ namespace ArrayModifiers.Scripts
                 {
                     mapping[material] = new List<CombineInstance>();
                 }
-
+                
                 var combine = new CombineInstance
                 {
                     mesh = meshFilter.sharedMesh,
                     transform = meshFilter.transform.localToWorldMatrix
                 };
-
+                
                 mapping[material].Add(combine);
             }
 
@@ -35,7 +36,10 @@ namespace ArrayModifiers.Scripts
                 var obj = new GameObject($"submesh_{index}");
                 var meshFilter = obj.AddComponent<MeshFilter>();
                 var meshRenderer = obj.AddComponent<MeshRenderer>();
-                var mesh = new Mesh();
+                var mesh = new Mesh
+                {
+                    indexFormat = IndexFormat.UInt32
+                };
 
                 meshFilter.sharedMesh = mesh;
                 meshFilter.sharedMesh.CombineMeshes(pair.Value.ToArray(), true, true, false);

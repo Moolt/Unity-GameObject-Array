@@ -1,6 +1,6 @@
 {
   "name": "com.moolt.arraymodifiers",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "displayName": "ArrayModifiers",
   "description": "Copies objects in a circular or linear manner similar to blenders array modifier.",
   "unity": "2020.3",
@@ -24,9 +24,19 @@
   },
   "samples": [
     {
-      "displayName": "Samples",
-      "description": "Contains sample scenes for linear and circular arrays.",
-      "path": "Samples~"
+      "displayName": "2D Samples",
+      "description": "Contains a sample scene using a linear array with a sprite.",
+      "path": "Samples/2D"
+    },
+    {
+      "displayName": "3D Samples",
+      "description": "Contains a sample scene using a linear and circular arrays.",
+      "path": "Samples/3D"
+    },
+    {
+      "displayName": "Extension",
+      "description": "Contains sample scenes postprocessors to modify copies.",
+      "path": "Samples/Extension"
     }
   ]
 }

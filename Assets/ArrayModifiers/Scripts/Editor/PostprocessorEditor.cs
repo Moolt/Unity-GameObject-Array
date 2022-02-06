@@ -1,8 +1,9 @@
 using System.Linq;
+using ArrayModifiers.Scripts.Extension;
 using UnityEditor;
 using UnityEngine;
-using static ArrayModifiers.Scripts.PostProcessor;
-using static ArrayModifiers.Scripts.PostProcessor.Fields;
+using static ArrayModifiers.Scripts.Extension.PostProcessor;
+using static ArrayModifiers.Scripts.Extension.PostProcessor.Fields;
 
 namespace ArrayModifiers.Scripts.Editor
 {

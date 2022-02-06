@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ArrayModifiers.Scripts.Extension;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -218,10 +219,20 @@ namespace ArrayModifiers.Scripts
             foreach (var postprocessor in postprocessors)
             {
                 postprocessor.BeforeExecute();
+                var root = transform;
+                var childCount = root.childCount;
 
-                foreach (Transform child in transform)
+                for (var i = 0; i < childCount; i++)
                 {
-                    postprocessor.Execute(child);
+                    var child = transform.GetChild(i);
+                    var info = new InstanceInfo
+                    {
+                        Instance = child,
+                        Root = root,
+                        TotalCount = childCount,
+                        Index = i
+                    };
+                    postprocessor.Execute(info);
                 }
 
                 postprocessor.AfterExecute();

@@ -94,13 +94,8 @@ namespace ArrayModifiers.Scripts
 
         public void Apply(Action<Object> destroy)
         {
-            var modifiers = GetComponents<ArrayModifier>();
-
-            foreach (var modifier in modifiers)
-            {
-                modifier._isCurrentlyApplying = true;
-                destroy(modifier);
-            }
+            this.DestroyComponents<PostProcessor>(destroy);
+            this.DestroyComponents<ArrayModifier>(destroy, m => m._isCurrentlyApplying = true);
         }
 
         protected abstract Vector3 RelativePositionFor(int index, Bounds bounds);

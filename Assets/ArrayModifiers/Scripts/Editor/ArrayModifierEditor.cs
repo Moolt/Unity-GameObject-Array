@@ -170,6 +170,7 @@ namespace ArrayModifiers.Scripts.Editor
                 return;
             }
 
+            _arrayModifier.Clear();
             _arrayModifier.Execute();
         }
 

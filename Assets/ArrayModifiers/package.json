@@ -1,0 +1,26 @@
+{
+    "name": "com.moolt.arraymodifiers",
+    "version": "0.0.1",
+    "displayName": "ArrayModifiers",
+    "description": "Copies objects in a circular or linear manner similar to blenders array modifier.",
+    "unity": "2020.3",
+    "unityRelease": "14f1",
+    "documentationUrl": "https://github.com/Moolt/Unity-GameObject-Array",
+    "changelogUrl": "https://github.com/Moolt/Unity-GameObject-Array",
+    "licensesUrl": "https://github.com/Moolt/Unity-GameObject-Array/blob/main/LICENSE",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Moolt/Unity-GameObject-Array.git"
+    },
+   "keywords": [
+      "GameObject",
+      "Array",
+      "Blender"
+    ],
+    "author": {
+      "name": "Malte Weiß",
+      "email": "malteweiss93@gmail.com",
+      "url": "https://github.com/Moolt"
+    }
+  }
+  

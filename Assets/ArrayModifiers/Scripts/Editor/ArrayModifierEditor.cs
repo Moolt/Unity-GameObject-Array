@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using static ArrayModifiers.Scripts.ArrayModifier.Fields;
 
 namespace ArrayModifiers.Scripts.Editor
 {
@@ -71,12 +72,14 @@ namespace ArrayModifiers.Scripts.Editor
                 instance.StaticFlags = _arrayModifier.StaticFlags;
                 instance.GenerateLightmapUVs = _arrayModifier.GenerateLightmapUVs;
             }
+            
+            _arrayModifier.Clear();
         }
 
         private bool DrawAmountProperty()
         {
             EditorGUI.BeginChangeCheck();
-            var serAmount = serializedObject.FindProperty("amount");
+            var serAmount = serializedObject.FindProperty(Amount);
             EditorGUILayout.PropertyField(serAmount);
 
             return EditorGUI.EndChangeCheck();
@@ -91,7 +94,7 @@ namespace ArrayModifiers.Scripts.Editor
 
             EditorGUI.BeginChangeCheck();
 
-            var serOriginal = serializedObject.FindProperty("original");
+            var serOriginal = serializedObject.FindProperty(Original);
             EditorGUILayout.PropertyField(serOriginal);
 
             if (!EditorGUI.EndChangeCheck())
@@ -117,18 +120,18 @@ namespace ArrayModifiers.Scripts.Editor
                 EditorGUILayout.Space();
             }
             
-            var serBakeMeshes = serializedObject.FindProperty("bakeMeshes");
+            var serBakeMeshes = serializedObject.FindProperty(BakeMeshes);
             EditorGUILayout.PropertyField(serBakeMeshes);
 
             if (serBakeMeshes.boolValue)
             {
-                var serStaticFlags = serializedObject.FindProperty("staticFlags");
+                var serStaticFlags = serializedObject.FindProperty(StaticFlags);
                 EditorGUILayout.PropertyField(serStaticFlags);
 
-                var serLightmapUVs = serializedObject.FindProperty("generateLightmapUVs");
+                var serLightmapUVs = serializedObject.FindProperty(GenerateLightmapUVs);
                 EditorGUILayout.PropertyField(serLightmapUVs, new GUIContent("Generate Lightmap UVs"));
 
-                var serAddCollider = serializedObject.FindProperty("addCollider");
+                var serAddCollider = serializedObject.FindProperty(AddCollider);
                 EditorGUILayout.PropertyField(serAddCollider);
             }
 
@@ -149,12 +152,12 @@ namespace ArrayModifiers.Scripts.Editor
             DrawPropertiesExcluding(
                 serializedObject,
                 "m_Script",
-                "original",
-                "bakeMeshes",
-                "amount",
-                "staticFlags",
-                "generateLightmapUVs",
-                "addCollider");
+                Original,
+                BakeMeshes,
+                Amount,
+                StaticFlags,
+                GenerateLightmapUVs,
+                AddCollider);
             serializedObject.ApplyModifiedProperties();
 
             return EditorGUI.EndChangeCheck();

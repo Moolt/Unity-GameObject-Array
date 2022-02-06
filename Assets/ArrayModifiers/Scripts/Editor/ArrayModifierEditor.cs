@@ -52,28 +52,28 @@ namespace ArrayModifiers.Scripts.Editor
 
         private void SynchronizeGlobalSettings()
         {
-            if (!_arrayModifier.IsFirstInstance())
+            var all = _arrayModifier.AllInstances();
+
+            if (all.Count <= 1)
             {
                 return;
             }
 
-            var all = _arrayModifier.AllInstances();
+            var first = _arrayModifier.FirstInstance();
 
             foreach (var instance in all)
             {
-                if (instance == _arrayModifier)
+                if (instance == first)
                 {
                     continue;
                 }
 
-                instance.Original = _arrayModifier.Original;
-                instance.BakeMeshes = _arrayModifier.BakeMeshes;
-                instance.AddCollider = _arrayModifier.AddCollider;
-                instance.StaticFlags = _arrayModifier.StaticFlags;
-                instance.GenerateLightmapUVs = _arrayModifier.GenerateLightmapUVs;
+                instance.Original = first.Original;
+                instance.BakeMeshes = first.BakeMeshes;
+                instance.AddCollider = first.AddCollider;
+                instance.StaticFlags = first.StaticFlags;
+                instance.GenerateLightmapUVs = first.GenerateLightmapUVs;
             }
-            
-            _arrayModifier.Clear();
         }
 
         private bool DrawAmountProperty()

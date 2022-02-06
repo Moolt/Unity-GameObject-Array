@@ -6,6 +6,12 @@ namespace ArrayModifiers.Scripts
 {
     public partial class ArrayModifier
     {
+        public ArrayModifier FirstInstance()
+        {
+            var components = AllInstances();
+            return !components.Any() ? null : components[0];
+        }
+        
         public bool IsFirstInstance()
         {
             return FirstInstance() == this;
@@ -28,12 +34,6 @@ namespace ArrayModifiers.Scripts
         {
             neighboringInstance = TryGetNeighboringInstance(1);
             return neighboringInstance != null;
-        }
-
-        private ArrayModifier FirstInstance()
-        {
-            var components = AllInstances();
-            return !components.Any() ? null : components[0];
         }
 
         private ArrayModifier TryGetNeighboringInstance(int offset)

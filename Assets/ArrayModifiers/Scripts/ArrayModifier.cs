@@ -12,6 +12,7 @@ namespace ArrayModifiers.Scripts
     {
         [SerializeField] private Transform original;
         [SerializeField] [Min(1)] private int amount = 2;
+        [SerializeField] [HideInInspector] private bool initialized;
 
         private bool _isCurrentlyApplying;
         private bool _executionLocked;

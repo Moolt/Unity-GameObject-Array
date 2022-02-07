@@ -11,6 +11,7 @@ namespace ArrayModifiers.Scripts
             public const string GenerateLightmapUVs = nameof(generateLightmapUVs);
             public const string AddCollider = nameof(addCollider);
             public const string StaticFlags = nameof(staticFlags);
+            public const string Initialized = nameof(initialized);
         }
     }
 }

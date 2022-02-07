@@ -40,9 +40,14 @@ namespace ArrayModifiers.Scripts.Editor
             EditorGUILayout.Space();
             DrawApplyButton();
 
-            if (!hasChanges)
+            if (!hasChanges && Initialized)
             {
                 return;
+            }
+
+            if (!Initialized)
+            {
+                Initialized = true;
             }
 
             SynchronizeGlobalSettings();
@@ -105,7 +110,7 @@ namespace ArrayModifiers.Scripts.Editor
             _arrayModifier.Clear();
             return true;
         }
-    
+
         private bool DrawBakeMeshesProperty()
         {
             if (!_arrayModifier.IsFirstInstance())
@@ -119,7 +124,7 @@ namespace ArrayModifiers.Scripts.Editor
             {
                 EditorGUILayout.Space();
             }
-            
+
             var serBakeMeshes = serializedObject.FindProperty(BakeMeshes);
             EditorGUILayout.PropertyField(serBakeMeshes);
 
@@ -195,6 +200,21 @@ namespace ArrayModifiers.Scripts.Editor
             var collider2D = original.GetComponentInChildren<Collider2D>();
 
             return collider == null && collider2D == null;
+        }
+
+        private bool Initialized
+        {
+            get
+            {
+                var serInitialized = serializedObject.FindProperty(ArrayModifier.Fields.Initialized);
+                return serInitialized.boolValue;
+            }
+            set
+            {
+                var serInitialized = serializedObject.FindProperty(ArrayModifier.Fields.Initialized);
+                serInitialized.boolValue = value;
+                serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
     }
 }

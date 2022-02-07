@@ -7,8 +7,7 @@ The amount of copies and the distance between them can be configured and viewed 
 
 ## Installation
 
-You can download the Unity package [here](https://github.com/Moolt/Unity-GameObject-Array/raw/main/array_modifiers.unitypackage).
-Open it with Unity and import the `ArrayModifiers` directory for the array modifier scripts or everything, if you want the example scenes included.
+The package can be installed via the Unity Package Manager. Simply follow [this guide](https://docs.unity3d.com/Manual/upm-ui-giturl.html) and use the following url: git+https://github.com/Moolt/Unity-GameObject-Array.git?path=Assets/ArrayModifiers
 
 ## Usage
 
@@ -57,13 +56,48 @@ public class ArrayController : MonoBehaviour
 
 Even though having many objects in the scene is inefficient the array modifiers are optimized for realtime manipulation, see `Optimization`.
 
-## Optimization
+## Mesh baking
+
+Handling too many GameObjects can significantly impact the performance of your game. To reduce the amount of objects in the scene, the meshes of the copies prefabs can be combined into one. If your prefab contains multiple materials, there will be one submesh per material.
+
+You can also set static flags, generate lightmap UVs or add a box collider to the resulting submeshes.
+
+![img](img/baking.png)
+
+## Object pooling
 
 The array modifiers are optimized by using object pooling.
 This means that value changes on the modifier will not cause all objects to be removed and reinstantiated. 
 Instead the positions of the already existing objects will be updated. If the user changes the amount of copies, the object pool will be filled or drained accordingly.
 
-## Extension
+Object pooling is not available when mesh baking is enabled.
+
+## Post processors
+
+Postprocessor-Components can be used to modify the copied instances, for example to change their color, rotation or scale. Postprocessors are called after copying and before mesh baking (if enabled).
+
+Currently `ColorPostProcessor`, `RotationPostProcessor` and `LookAtCenterPostProcessor` are provided by the plugin.
+
+![img](img/postprocessors.png)
+
+To write your own postprocessor, you can extent the `PostProcessor` class:
+
+```csharp
+public class MyPostProcessor : PostProcessor
+{
+    public override void Execute(InstanceInfo info)
+    {
+        var (instance, root, totalCount, index) = info;
+
+        // do stuff with instance
+        instance.localScale = Vector3.one * index;
+    }
+}
+```
+
+The `Execute`-Method will be called for each instance and takes an `InstanceInfo` as parameter. The `InstanceInfo` contains the copied instance, the root / parent object, the total amount of copies and the index of the instance.
+
+## Creating custom arrays
 
 To create custom array modifiers you can inherit from the `ArrayModifier` class.
 The only method that needs to be implemented is `RelativePositionFor` which returns a position for a copy at `index` in `local space`.

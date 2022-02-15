@@ -78,7 +78,7 @@ namespace ArrayModifiers.Scripts
                 return;
             }
 #else
-            instance = Instantiate(Original);
+            instance = Object.Instantiate(Prefab);
 #endif
 
             instance.SetParent(Parent);

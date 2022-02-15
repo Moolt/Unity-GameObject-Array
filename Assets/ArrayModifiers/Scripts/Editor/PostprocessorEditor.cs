@@ -3,7 +3,6 @@ using ArrayModifiers.Scripts.Extension;
 using UnityEditor;
 using UnityEngine;
 using static ArrayModifiers.Scripts.Extension.PostProcessor;
-using static ArrayModifiers.Scripts.Extension.PostProcessor.Fields;
 
 namespace ArrayModifiers.Scripts.Editor
 {
